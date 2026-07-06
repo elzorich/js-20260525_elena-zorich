@@ -36,7 +36,11 @@ interface ProductFormData {
 
 export default class ProductForm {
   productId?: string;
-  element: HTMLElement | null = null;
+  private _element: HTMLElement | null = null;
+
+  get element(): HTMLElement {
+    return required(this._element, 'ProductForm element is not initialized');
+  }
   subElements: Record<string, HTMLElement> = {};
   categories: Category[] = [];
   formData: ProductFormData | null = null;
@@ -73,7 +77,7 @@ export default class ProductForm {
     this.categories = await this.loadCategories();
     this.formData = this.productId ?
       (await this.loadProductData(this.productId))[0] : this.defaultFormData;
-    this.element = createElement(this.getTemplate());
+    this._element = createElement(this.getTemplate());
     this.subElements = this.getSubElements();
     const items = this.getImagesItems();
     this.sortableList = new SortableList({ items });
@@ -97,7 +101,7 @@ export default class ProductForm {
 
   getSubElements(): Record<string, HTMLElement> {
     const result: Record<string, HTMLElement> = {};
-    const elements = this.element?.querySelectorAll<HTMLElement>("[data-element]") || [];
+    const elements = this.element.querySelectorAll<HTMLElement>("[data-element]");
     for (const el of elements) {
       const name = el.getAttribute("data-element");
       if (name) {
@@ -108,14 +112,14 @@ export default class ProductForm {
   }
 
   remove(): void {
-    this.element?.remove();
-    this.element = null;
+    this._element?.remove();
   }
 
   destroy(): void {
     this.remove();
     this.sortableList?.destroy();
     this.sortableList = null;
+    this._element = null;
   }
 
   getImagesItems(): HTMLElement[] {
@@ -304,7 +308,7 @@ export default class ProductForm {
     const eventName = this.productId ? "product-updated" : "product-saved";
     const eventDetail = this.productId ?? result.id;
 
-    this.element?.dispatchEvent(
+    this.element.dispatchEvent(
       new CustomEvent(eventName, { detail: eventDetail, bubbles: true }),
     );
   }
