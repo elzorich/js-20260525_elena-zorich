@@ -1,11 +1,11 @@
-import { createElement } from '../../shared/utils/create-element';
-import { required } from '../../shared/utils/required';
+import { createElement } from "../../shared/utils/create-element";
+import { required } from "../../shared/utils/required";
 
 export default class SortableList {
   private _element: HTMLElement | null = null;
 
   get element(): HTMLElement {
-    return required(this._element, 'SortableList element is not initialized');
+    return required(this._element, "SortableList element is not initialized");
   }
 
   private draggingElem: HTMLElement | null = null;
@@ -18,13 +18,13 @@ export default class SortableList {
 
     const target = event.target as HTMLElement;
 
-    if (target.closest('[data-delete-handle]')) {
-      target.closest('.sortable-list__item')?.remove();
+    if (target.closest("[data-delete-handle]")) {
+      target.closest(".sortable-list__item")?.remove();
       return;
     }
 
-    if (target.closest('[data-grab-handle]')) {
-      const item = target.closest<HTMLElement>('.sortable-list__item');
+    if (target.closest("[data-grab-handle]")) {
+      const item = target.closest<HTMLElement>(".sortable-list__item");
       if (item) {
         event.preventDefault();
         this.startDragging(item, event);
@@ -61,18 +61,27 @@ export default class SortableList {
 
     this.placeholder.replaceWith(this.draggingElem);
 
-    this.draggingElem.classList.remove('sortable-list__item_dragging');
-    this.draggingElem.style.left = '';
-    this.draggingElem.style.top = '';
-    this.draggingElem.style.width = '';
-    this.draggingElem.style.boxShadow = '';
+    this.draggingElem.classList.remove("sortable-list__item_dragFging");
+    this.draggingElem.style.left = "";
+    this.draggingElem.style.top = "";
+    this.draggingElem.style.width = "";
+    this.draggingElem.style.boxShadow = "";
+
+    this._element?.dispatchEvent(
+      new CustomEvent("sortable-list-reorder", {
+        bubbles: true,
+        detail: {
+          items: Array.from(this._element.children) as HTMLElement[],
+        },
+      }),
+    );
 
     this.draggingElem = null;
     this.placeholder = null;
 
-    document.removeEventListener('pointermove', this.onPointerMove);
-    document.removeEventListener('pointerup', this.onPointerUp);
-    document.removeEventListener('pointercancel', this.onPointerUp);
+    document.removeEventListener("pointermove", this.onPointerMove);
+    document.removeEventListener("pointerup", this.onPointerUp);
+    document.removeEventListener("pointercancel", this.onPointerUp);
   };
 
   private startDragging(item: HTMLElement, event: PointerEvent): void {
@@ -84,24 +93,24 @@ export default class SortableList {
     };
     this.prevPointer = { x: event.clientX, y: event.clientY };
 
-    const placeholder = document.createElement('li');
-    placeholder.className = 'sortable-list__placeholder';
+    const placeholder = document.createElement("li");
+    placeholder.className = "sortable-list__placeholder";
     placeholder.style.width = `${rect.width}px`;
     placeholder.style.height = `${rect.height}px`;
     this.placeholder = placeholder;
 
     item.before(placeholder);
 
-    item.classList.add('sortable-list__item_dragging');
+    item.classList.add("sortable-list__item_dragging");
     item.style.width = `${rect.width}px`;
     item.style.left = `${rect.left}px`;
     item.style.top = `${rect.top}px`;
 
     this.draggingElem = item;
 
-    document.addEventListener('pointermove', this.onPointerMove);
-    document.addEventListener('pointerup', this.onPointerUp);
-    document.addEventListener('pointercancel', this.onPointerUp);
+    document.addEventListener("pointermove", this.onPointerMove);
+    document.addEventListener("pointerup", this.onPointerUp);
+    document.addEventListener("pointercancel", this.onPointerUp);
   }
 
   private movePlaceholder(cursorY: number): void {
@@ -125,11 +134,11 @@ export default class SortableList {
     this._element = el;
 
     for (const item of items) {
-      item.classList.add('sortable-list__item');
+      item.classList.add("sortable-list__item");
       el.append(item);
     }
 
-    el.addEventListener('pointerdown', this.onPointerDown);
+    el.addEventListener("pointerdown", this.onPointerDown);
   }
 
   remove() {
@@ -137,10 +146,10 @@ export default class SortableList {
   }
 
   destroy() {
-    this._element?.removeEventListener('pointerdown', this.onPointerDown);
-    document.removeEventListener('pointermove', this.onPointerMove);
-    document.removeEventListener('pointerup', this.onPointerUp);
-    document.removeEventListener('pointercancel', this.onPointerUp);
+    this._element?.removeEventListener("pointerdown", this.onPointerDown);
+    document.removeEventListener("pointermove", this.onPointerMove);
+    document.removeEventListener("pointerup", this.onPointerUp);
+    document.removeEventListener("pointercancel", this.onPointerUp);
     this.remove();
     this._element = null;
   }
